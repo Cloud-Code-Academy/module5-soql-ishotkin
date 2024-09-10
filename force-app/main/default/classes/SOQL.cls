@@ -72,7 +72,7 @@ public with sharing class SOQL {
      * Update the corresponding test class and testGetClosedWonOpportunityCountByAccount method to cover this method
      */
     public static List<Opportunity> getClosedWonOpportunityCountByAccount (Id accountId) {
-        List<Opportunity> closedOppsForAcct = [SELECT Id, Name, Amount, CloseDate, AccountId, StageName FROM Opportunity WHERE AccountId = :accountId AND IsClosed = TRUE]; // Use SOQL to get the Closed Opps for the given Account
+        List<Opportunity> closedOppsForAcct = [SELECT Id, Name, Amount, CloseDate, AccountId, StageName FROM Opportunity WHERE AccountId = :accountId AND StageName = 'Closed Won']; // Use SOQL to get the Closed Opps for the given Account
 
         return closedOppsForAcct; // Return the Account's closed Opportunities
     }
@@ -101,9 +101,7 @@ public with sharing class SOQL {
         Date startDate = Date.today(); // Set the beginning of the possible time frame
         Date endDate = Date.today().addDays(7); // Set the end of the possible time frame
         List<Task> nextWeeksTasks = [SELECT Id, Subject, ActivityDate FROM Task WHERE ActivityDate >= :startDate AND ActivityDate <= :endDate]; // Find the tasks within the given timeframe
-        
-        Map<Id, Task> upcomingTasks = new Map<Id, Task>(); // Create a Map to hold the upcoming Tasks
-        upcomingTasks.putAll(nextWeeksTasks); // Put all Tasks and their Ids into the map
+        Map<Id, Task> upcomingTasks = new Map<Id, Task>(nextWeeksTasks); // Create a Map to hold the upcoming Tasks
 
         return upcomingTasks; // Return the map of upcoming Tasks
     }
@@ -319,7 +317,7 @@ public with sharing class SOQL {
         String accountState = foundAccounts[0].BillingState; // Store the Account's BillingState
         List<Contact> foundContacts = [SELECT Id FROM Contact WHERE MailingState = :accountState]; // Query the Contacts
         
-        return foundContacts; // Replace null with the variable you used to store the result
+        return foundContacts; // Return the Contacts
     }
 
     /**
@@ -333,15 +331,12 @@ public with sharing class SOQL {
     public static List<Account> findAccountsByLeadEmailDomains(Set<Id> leadIds) {
         List<Lead> foundLeads = [SELECT Id, Name, Email FROM LEAD WHERE Id IN :leadIds]; // Query the Leads
         Set<String> emailDomains = new Set<String>(); // Create a set of email domains for the Leads
-        String leadEmail; // Create a variable to hold the email from each Lead in the loop
         List<Account> foundAccounts; // Create the list to hold the Accounts
 
         for(Lead l : foundLeads) {// Loop through each Lead
-            leadEmail = l.Email; // Get the email from the Lead
-
-            if(String.isNotBlank(leadEmail)) { // Check if the email is not null
-                emailDomains.add('www.' + leadEmail.substring(leadEmail.indexOf('@')+1)); // Add the email domain to the set
-            }system.debug(emailDomains);
+            if(String.isNotBlank(l.Email)) { // Check if the email is not null
+                emailDomains.add('www.' + l.Email.substring(l.Email.indexOf('@')+1)); // Add the email domain to the set
+            }
         }
         
         foundAccounts = [SELECT Id, Website FROM Account WHERE Website IN :emailDomains]; // Query the Accounts
