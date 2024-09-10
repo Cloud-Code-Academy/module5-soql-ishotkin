@@ -55,14 +55,9 @@ public with sharing class SOQL {
      * Update the corresponding test class and testGetContactIdsByLastName method to cover this method
      */
     public static List<Id> getContactIdsByLastName() {
-        List<Contact> contacts = [SELECT Id FROM Contact WHERE LastName = 'Smith' OR LastName = 'Jones']; // Use SOQL to get list of all Contacts with desired names
-        List<Id> contactIds = new List<Id>(); // Create List for IDs
-
-        if (!contacts.isEmpty()){
-            for (Contact c : contacts) {
-                contactIds.add(c.Id); // For each Contact found, add their Id to the List of IDs
-            }
-        }
+        List<Contact> foundContactsList = [SELECT Id FROM Contact WHERE LastName = 'Smith' OR LastName = 'Jones']; // Query the Contacts with the given last names
+        Map<Id, Contact> contactsMap = new Map<Id, Contact>(foundContactsList); // Convert the list into a map to separate the Id from the other fields
+        List<Id> contactIds = new List<Id>(contactsMap.keySet()); // Assign the Ids to the a new list
 
         return contactIds; // Return the list of IDs
     }
@@ -258,12 +253,9 @@ public with sharing class SOQL {
      * @return A set of Case Ids.
      */
     public static Set<Id> getCaseIdsByAccount(Id accountId) {
-        Set<Id> caseIds = new Set<Id>(); // Create a set to hold the Case Ids
         List<Case> casesForAccount = [SELECT Id FROM Case WHERE AccountId = :accountId]; // Query the Cases
-        
-        for(Case c : casesForAccount) { // Loop through each Case and add the Id to the set
-            caseIds.add(c.Id);
-        }
+        Map<Id, Case> caseMap = new Map<Id, Case>(casesForAccount); // Assign the Cases to a map to get their Ids separate
+        Set<Id> caseIds = new Set<Id>(caseMap.keySet()); // Assign the map keyset to the set
 
         return caseIds; // Return the Case's Ids
     }
@@ -370,9 +362,8 @@ public with sharing class SOQL {
         List<OpportunityLineItem> newOppLineItems = new List<OpportunityLineItem>(); // Create a list to hold the new line items
 
         for(Id i : cloneOppIds) { // Loop through each cloned Opportunity Id
-            Integer randomNum = (Integer)(Math.random()*3+1); // Find a random number for each of the cloned IDs using formula: (Integer)(Math.random()*(max-min+1)+1)
-        
             for(OpportunityLineItem olt : foundOppLineItems){ // Loop through each original line items
+                Integer randomNum = (Integer)(Math.random()*3+1); // Find a random number for each of the new Opp Line Item using formula: (Integer)(Math.random()*(max-min+1)+1)
                 OpportunityLineItem newLineItem = olt.clone(false, true, false, false); // Clone the original line item
                 newLineItem.OpportunityId = i; // Set the OpportunityId to the current Opportunity ID that we are looping through
                 newLineItem.Quantity = olt.Quantity + randomNum; // Add the random number to the quantity
@@ -410,13 +401,13 @@ public with sharing class SOQL {
             if(!primaryContacts.isEmpty()) {
                 for(Contact c : primaryContacts) { // Loop through each Contact
                     accountContactMap.put(c.AccountId, c); // Add the Account Id and Contact to the map
+                }
                     
-                    for(Opportunity opp : closeWonOpps) { // Loop through each Opportunity
-                        opp.Primary_Contact__c = accountContactMap.get(opp.AccountId).Id; // Update the Opportunity primary contact from accountToContactMap
-                    }
+                for(Opportunity opp : closeWonOpps) { // Loop through each Opportunity
+                    opp.Primary_Contact__c = accountContactMap.get(opp.AccountId).Id; // Update the Opportunity primary contact from accountToContactMap
                 }
 
-            update closeWonOpps; // Update the Opportunities
+                update closeWonOpps; // Update the Opportunities
             }
         }
     }
