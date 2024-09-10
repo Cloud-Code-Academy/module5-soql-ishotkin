@@ -370,7 +370,7 @@ public with sharing class SOQL {
         List<OpportunityLineItem> newOppLineItems = new List<OpportunityLineItem>(); // Create a list to hold the new line items
 
         for(Id i : cloneOppIds) { // Loop through each cloned Opportunity Id
-            Integer randomNum = (Integer)(Math.random()*3+1); // Find a random number for each of the cloned IDs
+            Integer randomNum = (Integer)(Math.random()*3+1); // Find a random number for each of the cloned IDs using formula: (Integer)(Math.random()*(max-min+1)+1)
         
             for(OpportunityLineItem olt : foundOppLineItems){ // Loop through each original line items
                 OpportunityLineItem newLineItem = olt.clone(false, true, false, false); // Clone the original line item
