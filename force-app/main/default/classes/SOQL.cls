@@ -190,11 +190,7 @@ public with sharing class SOQL {
      */
     public static Decimal getTotalRevenueByStage(String stage) {
         List<AggregateResult> oppValue = [SELECT SUM(Amount)revenue FROM Opportunity WHERE Amount > 10000 OR StageName = :stage]; // Use AggregateQuery to get the total revenue
-        Decimal oppRevenue=0;
-        
-        for(AggregateResult ar : oppValue){
-            oppRevenue = (decimal)ar.get('revenue'); // Retrieve the total revenue from the query result
-        }
+        Decimal oppRevenue=(Decimal)oppValue[0].get('revenue'); // Retrieve the total revenue from the query result
         
         return oppRevenue; // Return the total revenue
     }
